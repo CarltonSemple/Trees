@@ -38,10 +38,7 @@ public:
 	// change the originating node's parent's child nodes (change the root) if necessary
 	void balance();
 
-private:
 	T value;
-
-public:
 	Node<T> * parent;
 	Node<T> * leftChild;
 	Node<T> * rightChild;

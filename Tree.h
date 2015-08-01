@@ -119,10 +119,13 @@ void BinaryTree<T>::print()
 		if (current->rightChild != nullptr)
 			qu.push(current->rightChild);
 
+		if (qu.size() == 0)
+			break;
+
 		// get the child that's been in the queue the longest
 		current = qu.front();
 		qu.pop();
-	} while (qu.size() > 0);
+	} while (true);
 }
 
 template <typename T>
