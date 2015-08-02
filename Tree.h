@@ -13,8 +13,16 @@ public:
 	/* Insert iteratively */
 	void insert(T value);
 	void insert(Node<T> * newNode);
+	void remove(T value);
 	
+	/* Print tree using Breadth-First-Search algorithm */
 	void print();
+
+	/* Print in order from lowest to highest */
+	void printLowestHighest()
+	{
+		printInOrder_recursive(root);
+	}
 
 private:
 	Node<T> * root;
@@ -29,9 +37,10 @@ private:
 
 	// visit each node and call its balance function, starting at the bottom of the tree
 	void balanceTree(Node<T> * currentNode);
-	void rotate();
-	void heightOfNode(Node<T> * topNode);
 
+	Node<T> * getNextHighestNode(Node<T> * startingNode);
+
+	void printInOrder_recursive(Node<T> * currentNode);
 };
 
 template <typename T>
@@ -95,19 +104,94 @@ void BinaryTree<T>::insert(Node<T> * newNode)
 }
 
 template <typename T>
+void BinaryTree<T>::remove(T value)
+{
+	if (root == nullptr)
+		return;
+	Node<T> * current = root;
+	while (true)
+	{
+		if (current->value > value)
+		{
+			current = current->leftChild;
+		}
+		else if (current->value < value)
+		{
+			current = current->rightChild;
+		}
+		else if (current->value == value)
+		{
+			// value was found
+			if (current == root)
+			{
+				root = nullptr;
+			}
+			else if (current->leftChild == nullptr && current->rightChild == nullptr)
+			{
+				// node has no children
+				if (current->parent->leftChild == current)
+					current->parent->leftChild = nullptr;
+				else
+					current->parent->rightChild = nullptr;
+			}
+			else if (current->leftChild == nullptr)
+			{
+				// node only has right child
+				if (current->parent->rightChild == current)
+					current->parent->rightChild = current->rightChild;
+				else
+					current->parent->leftChild = current->rightChild;
+				current->rightChild->parent = current->parent;
+			}
+			else if (current->rightChild == nullptr)
+			{
+				// node only has left child
+				if (current->parent->rightChild == current)
+					current->parent->rightChild = current->leftChild;
+				else
+					current->parent->leftChild = current->leftChild;
+				current->leftChild->parent = current->parent;
+			}
+			else
+			{
+				// node has both children
+				// get the next largest node
+				Node<T> * nextLargest = current->rightChild;
+				if (nextLargest->leftChild != nullptr)
+				{
+					while (nextLargest->leftChild != nullptr)
+					{
+						nextLargest = nextLargest->leftChild;
+					}
+					nextLargest->parent->leftChild = nullptr;
+				}
+				if (current->parent->rightChild == current)
+					current->parent->rightChild = nextLargest;
+				else
+					current->parent->leftChild = nextLargest;
+				nextLargest->parent = current->parent;
+			}
+			delete current;
+			balanceTree(root);
+			return;
+		}
+	}
+}
+
+template <typename T>
 void BinaryTree<T>::print()
 {
 	// queue to hold children
 	std::queue<Node<T>*> qu;
 
 	Node<T> * current = root;
-	int height = current->height_r();
+	int height = current->distanceFromTop();
 
 	do {
 		// new line if the node is lower in the tree
-		if (current->height_r() < height)
+		if (current->distanceFromTop() > height)
 		{
-			height--;
+			height++;
 			cout << endl;
 		}
 		// print current node's value
@@ -120,7 +204,10 @@ void BinaryTree<T>::print()
 			qu.push(current->rightChild);
 
 		if (qu.size() == 0)
+		{
+			cout << endl;
 			break;
+		}
 
 		// get the child that's been in the queue the longest
 		current = qu.front();
@@ -140,13 +227,40 @@ void BinaryTree<T>::balanceTree(Node<T> * currentNode)
 }
 
 template <typename T>
-void BinaryTree<T>::rotate()
+Node<T> * BinaryTree<T>::getNextHighestNode(Node<T> * startingNode)
 {
+	Node<T> * current = startingNode;
+	// case where node has right children
+	if (current->rightChild != nullptr)
+	{
+		current = current->rightChild;
+		// get the smallest node in the branch
+		while (current->leftChild != nullptr)
+		{
+			current = current->leftChild;
+		}
+		return current;
+	}
 
+	// if current node is a left child (with no right children of its own), 
+	// its parent is the next largest node
+	if (current->parent != nullptr)
+	{
+		if (current->parent->leftChild == current)
+		{
+			return current->parent;
+		}
+	}
+
+	return nullptr;
 }
 
 template <typename T>
-void BinaryTree<T>::heightOfNode(Node<T> * topNode)
+void BinaryTree<T>::printInOrder_recursive(Node<T> * currentNode)
 {
-
+	if (currentNode == nullptr)
+		return;
+	printInOrder_recursive(currentNode->leftChild);
+	cout << currentNode->value << " ";
+	printInOrder_recursive(currentNode->rightChild);
 }

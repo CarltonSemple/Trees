@@ -23,8 +23,19 @@ public:
 
 	// get height recursively
 	int height_r();
-
 	int height();
+	// how many nodes from this one until there's one with no parent
+	int distanceFromTop()
+	{
+		int count = 0;
+		Node<T> * current = this;
+		while (current->parent != nullptr)
+		{
+			current = current->parent;
+			count++;
+		}
+		return count;
+	}
 
 	// true if either of the child nodes is 2 greater in height than the other
 	// return: 1=left greater, 2=right greater
